@@ -17,7 +17,6 @@ import launch_testing_ros
 
 def generate_test_description():
     env = os.environ.copy()
-    env['OSPL_VERBOSITY'] = '8'  # 8 = OS_NONE
     # bare minimum formatting for console output matching
     env['RCUTILS_CONSOLE_OUTPUT_FORMAT'] = '{message}'
 

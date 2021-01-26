@@ -11,6 +11,8 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 find_package(ament_cmake REQUIRED)
+find_package(rcl REQUIRED)
+find_package(rclc REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 
@@ -28,7 +30,10 @@ add_executable(ping_and_pong_node src/main.cpp src/cbg_executor_demo/ping_node.c
 target_compile_definitions(ping_and_pong_node PRIVATE ADD_PING_NODE=1 ADD_PONG_NODE=1)
 ament_target_dependencies(ping_and_pong_node rclcpp std_msgs)
 
-install(TARGETS ping_node_only pong_node_only ping_and_pong_node
+add_executable(pong_rclc_node src/cbg_executor_demo/pong_rclc_node.c)
+ament_target_dependencies(pong_rclc_node rcl rclc std_msgs)
+
+install(TARGETS ping_node_only pong_node_only ping_and_pong_node pong_rclc_node
   DESTINATION lib/${PROJECT_NAME}
 )
 

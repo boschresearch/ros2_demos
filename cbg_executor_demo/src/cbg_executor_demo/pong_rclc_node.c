@@ -103,7 +103,7 @@ int main()
   RCCHECK(rclc_executor_add_subscription(&low_executor, &low_ping_subscription_, &low_ping_msg_, &low_ping_received, ON_NEW_DATA));
 
   rclc_executor_spin(&high_executor);
-  // And in second thread: rclc_executor_spin(&low_executor);
+  // TODO: And in second thread call: rclc_executor_spin(&low_executor);
 
   RCCHECK(rcl_subscription_fini(&high_ping_subscription_, &node));
   RCCHECK(rcl_publisher_fini(&high_pong_publisher_, &node));

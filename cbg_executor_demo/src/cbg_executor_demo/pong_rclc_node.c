@@ -80,35 +80,35 @@ void low_ping_received(const void * pong_msg)
 
 int main()
 {
-	rcl_allocator_t allocator = rcl_get_default_allocator();
-	rclc_support_t support;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  rclc_support_t support;
 
-	RCCHECK(rclc_support_init(&support, 0, NULL, &allocator));
+  RCCHECK(rclc_support_init(&support, 0, NULL, &allocator));
 
-	rcl_node_t node = rcl_get_zero_initialized_node();
-	RCCHECK(rclc_node_init_default(&node, "pong_rclc_node", "", &support));
+  rcl_node_t node = rcl_get_zero_initialized_node();
+  RCCHECK(rclc_node_init_default(&node, "pong_rclc_node", "", &support));
 
-	RCCHECK(rclc_publisher_init_best_effort(&high_pong_publisher_, &node, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32), "high_pong"));
-	RCCHECK(rclc_subscription_init_best_effort(&high_ping_subscription_, &node, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32), "high_ping"));
+  RCCHECK(rclc_publisher_init_best_effort(&high_pong_publisher_, &node, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32), "high_pong"));
+  RCCHECK(rclc_subscription_init_best_effort(&high_ping_subscription_, &node, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32), "high_ping"));
 
-	RCCHECK(rclc_publisher_init_best_effort(&low_pong_publisher_, &node, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32), "low_pong"));
-	RCCHECK(rclc_subscription_init_best_effort(&low_ping_subscription_, &node, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32), "low_ping"));
+  RCCHECK(rclc_publisher_init_best_effort(&low_pong_publisher_, &node, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32), "low_pong"));
+  RCCHECK(rclc_subscription_init_best_effort(&low_ping_subscription_, &node, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32), "low_ping"));
 
-	rclc_executor_t high_executor = rclc_executor_get_zero_initialized_executor();
-	RCCHECK(rclc_executor_init(&high_executor, &support.context, 1, &allocator));
-	RCCHECK(rclc_executor_add_subscription(&high_executor, &high_ping_subscription_, &high_ping_msg_, &high_ping_received, ON_NEW_DATA));
+  rclc_executor_t high_executor = rclc_executor_get_zero_initialized_executor();
+  RCCHECK(rclc_executor_init(&high_executor, &support.context, 1, &allocator));
+  RCCHECK(rclc_executor_add_subscription(&high_executor, &high_ping_subscription_, &high_ping_msg_, &high_ping_received, ON_NEW_DATA));
 
-	rclc_executor_t low_executor = rclc_executor_get_zero_initialized_executor();
-	RCCHECK(rclc_executor_init(&low_executor, &support.context, 1, &allocator));
-	RCCHECK(rclc_executor_add_subscription(&low_executor, &low_ping_subscription_, &low_ping_msg_, &low_ping_received, ON_NEW_DATA));
+  rclc_executor_t low_executor = rclc_executor_get_zero_initialized_executor();
+  RCCHECK(rclc_executor_init(&low_executor, &support.context, 1, &allocator));
+  RCCHECK(rclc_executor_add_subscription(&low_executor, &low_ping_subscription_, &low_ping_msg_, &low_ping_received, ON_NEW_DATA));
 
   rclc_executor_spin(&high_executor);
   // And in second thread: rclc_executor_spin(&low_executor);
 
-	RCCHECK(rcl_subscription_fini(&high_ping_subscription_, &node));
-	RCCHECK(rcl_publisher_fini(&high_pong_publisher_, &node));
-	RCCHECK(rcl_subscription_fini(&low_ping_subscription_, &node));  
-	RCCHECK(rcl_publisher_fini(&low_pong_publisher_, &node));
+  RCCHECK(rcl_subscription_fini(&high_ping_subscription_, &node));
+  RCCHECK(rcl_publisher_fini(&high_pong_publisher_, &node));
+  RCCHECK(rcl_subscription_fini(&low_ping_subscription_, &node));  
+  RCCHECK(rcl_publisher_fini(&low_pong_publisher_, &node));
 
-	RCCHECK(rcl_node_fini(&node));
+  RCCHECK(rcl_node_fini(&node));
 }

@@ -29,7 +29,6 @@
 #include <rclcpp/executor.hpp>
 
 #include "cbg_executor_demo/ping_node.hpp"
-#include "cbg_executor_demo/pong_node.hpp"
 
 
 /// Sets the priority of the given thread to max or min priority (in the SCHED_FIFO real-time
@@ -66,9 +65,6 @@ std::chrono::nanoseconds get_current_thread_clock_time(clockid_t id)
 }
 
 
-/// The main function composes the Ping and Pong node (depending on the arguments)
-/// and runs the experiment. See README.md for a simple architecture diagram.
-/// Here: rt = real-time = high scheduler priority and be = best-effort = low scheduler priority.
 int main(int argc, char * argv[])
 {
   using std::chrono::seconds;
@@ -78,50 +74,28 @@ int main(int argc, char * argv[])
   using namespace std::chrono_literals;
 
   using cbg_executor_demo::PingNode;
-  using cbg_executor_demo::PongNode;
-
+  
   const std::chrono::seconds EXPERIMENT_DURATION = 10s;
 
   rclcpp::init(argc, argv);
 
   // Create two executors within this process.
   rclcpp::executors::SingleThreadedExecutor high_prio_executor;
-  rclcpp::executors::SingleThreadedExecutor low_prio_executor;
 
-#ifdef ADD_PING_NODE
   auto ping_node = std::make_shared<PingNode>();
   high_prio_executor.add_node(ping_node);
   rclcpp::Logger logger = ping_node->get_logger();
-#endif
-
-#ifdef ADD_PONG_NODE
-  auto pong_node = std::make_shared<PongNode>();
-  high_prio_executor.add_callback_group(
-    pong_node->get_high_prio_callback_group(), pong_node->get_node_base_interface());
-  low_prio_executor.add_callback_group(
-    pong_node->get_low_prio_callback_group(), pong_node->get_node_base_interface());
-#ifndef ADD_PING_NODE
-  rclcpp::Logger logger = pong_node->get_logger();
-#endif
-#endif
 
   std::thread high_prio_thread([&]() {
       high_prio_executor.spin();
     });
   bool areThreadPriosSet = configure_thread(high_prio_thread, true, 1);
 
-  std::thread low_prio_thread([&]() {
-      low_prio_executor.spin();
-    });
-  areThreadPriosSet &= configure_thread(low_prio_thread, false, 1);
-
   // Creating the threads immediately started them. Therefore, get start CPU time of each
   /// thread now.
-  clockid_t high_prio_thread_clock_id, low_prio_thread_clock_io;
+  clockid_t high_prio_thread_clock_id;
   pthread_getcpuclockid(high_prio_thread.native_handle(), &high_prio_thread_clock_id);
-  pthread_getcpuclockid(low_prio_thread.native_handle(), &low_prio_thread_clock_io);
   nanoseconds high_prio_thread_begin = get_current_thread_clock_time(high_prio_thread_clock_id);
-  nanoseconds low_prio_thread_begin = get_current_thread_clock_time(low_prio_thread_clock_io);
 
   if (!areThreadPriosSet) {
     RCLCPP_WARN(logger, "Thread priorities are not configured correctly!");
@@ -132,24 +106,17 @@ int main(int argc, char * argv[])
 
   // Get end CPU time of each thread ...
   nanoseconds high_prio_thread_end = get_current_thread_clock_time(high_prio_thread_clock_id);
-  nanoseconds low_prio_thread_end = get_current_thread_clock_time(low_prio_thread_clock_io);
 
   // ... and stop the experiment.
   rclcpp::shutdown();
   high_prio_thread.join();
-  low_prio_thread.join();
 
-#ifdef ADD_PING_NODE
   ping_node->print_statistics();
-#endif
 
   // Print CPU times.
   int64_t high_prio_thread_duration_ms = std::chrono::duration_cast<milliseconds>(
     high_prio_thread_end - high_prio_thread_begin).count();
-  int64_t low_prio_thread_duration_ms = std::chrono::duration_cast<milliseconds>(
-    low_prio_thread_end - low_prio_thread_begin).count();
   RCLCPP_INFO(logger, "High priority executor thread ran for %d ms.", high_prio_thread_duration_ms);
-  RCLCPP_INFO(logger, "Low priority executor thread ran for %d ms.", low_prio_thread_duration_ms);
   if (!areThreadPriosSet) {
     RCLCPP_WARN(logger, "Again, thread priorities were not configured correctly!");
   }

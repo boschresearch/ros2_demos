@@ -18,22 +18,13 @@ find_package(std_msgs REQUIRED)
 
 include_directories(include)
 
-add_executable(ping_node_only src/main.cpp src/cbg_executor_demo/ping_node.cpp src/cbg_executor_demo/parameter_helper.cpp)
-target_compile_definitions(ping_node_only PRIVATE ADD_PING_NODE=1)
-ament_target_dependencies(ping_node_only rclcpp std_msgs)
-
-add_executable(pong_node_only src/main.cpp src/cbg_executor_demo/pong_node.cpp src/cbg_executor_demo/parameter_helper.cpp)
-target_compile_definitions(pong_node_only PRIVATE ADD_PONG_NODE=1)
-ament_target_dependencies(pong_node_only rclcpp std_msgs)
-
-add_executable(ping_and_pong_node src/main.cpp src/cbg_executor_demo/ping_node.cpp src/cbg_executor_demo/pong_node.cpp src/cbg_executor_demo/parameter_helper.cpp)
-target_compile_definitions(ping_and_pong_node PRIVATE ADD_PING_NODE=1 ADD_PONG_NODE=1)
-ament_target_dependencies(ping_and_pong_node rclcpp std_msgs)
+add_executable(ping_node src/main.cpp src/cbg_executor_demo/ping_node.cpp src/cbg_executor_demo/parameter_helper.cpp)
+ament_target_dependencies(ping_node rclcpp std_msgs)
 
 add_executable(pong_rclc_node src/cbg_executor_demo/pong_rclc_node.c)
 ament_target_dependencies(pong_rclc_node rcl rclc std_msgs)
 
-install(TARGETS ping_node_only pong_node_only ping_and_pong_node pong_rclc_node
+install(TARGETS ping_node pong_rclc_node
   DESTINATION lib/${PROJECT_NAME}
 )
 

@@ -102,8 +102,11 @@ int main()
   RCCHECK(rclc_executor_init(&low_executor, &support.context, 1, &allocator));
   RCCHECK(rclc_executor_add_subscription(&low_executor, &low_ping_subscription_, &low_ping_msg_, &low_ping_received, ON_NEW_DATA));
 
-  rclc_executor_spin(&high_executor);
-  // TODO: And in second thread call: rclc_executor_spin(&low_executor);
+  // TODO: Use RBS-enabled rclc Executor here:
+  while(true) {
+    rclc_executor_spin_some(&high_executor, 1000000);
+    rclc_executor_spin_some(&low_executor, 1000000);
+  }
 
   RCCHECK(rcl_subscription_fini(&high_ping_subscription_, &node));
   RCCHECK(rcl_publisher_fini(&high_pong_publisher_, &node));
